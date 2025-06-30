@@ -97,7 +97,7 @@ This project implements a machine learning pipeline for network anomaly detectio
 
    - **Official site:**  
      [CICIDS 2017 Dataset Download Page](https://www.unb.ca/cic/datasets/ids-2017.html)  
-     Direct CSVs: [MachineLearningCSV.zip](http://cicresearch.ca/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/MachineLearningCSV.zip)  
+     Direct CSVs: [MachineLearningCSV.zip](http://cicresearch.ca/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs)  
      > ⚠️ **Note:** The direct download link may show a "doesn't support a secure connection" warning in your browser. If prompted, choose "Continue to site" to access the file.
 
    - **Alternate Google Drive mirror:**  
