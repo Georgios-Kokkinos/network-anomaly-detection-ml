@@ -1,0 +1,12 @@
+# Ignore all files in data/ but keep the folder itself
+data/*
+!data/.gitkeep
+
+# Optionally ignore large result files, but keep small CSVs and plots
+# results/*.png
+# results/*.pdf
+
+# Ignore Python cache and system files
+__pycache__/
+*.pyc
+.DS_Store
