@@ -1,0 +1,13 @@
+Network Anomaly Detection - Short Report
+        Date: 2026-01-16
+
+        Overview
+        Three tree-based classifiers (RandomForest, XGBoost, LightGBM) were trained on a unified CICIDS 2017 pipeline with hybrid class balancing (downsample majority + SMOTE). A single stratified 80/20 hold-out enables fair comparison across models.
+
+        Data Slice
+        Total rows after cleaning: 763462. Train: 610769. Test: 152693. Features retained: 78. Classes observed: 12.
+
+        Aggregate Metrics (percent scale)
+        - RandomForest: Acc 99.6843%, Prec 99.6894%, Rec 99.6843%, F1 99.6825%
+- XGBoost: Acc 99.7295%, Prec 99.7416%, Rec 99.7295%, F1 99.7316%
+- LightGBM: Acc 99.7256%, Prec 99.7446%, Rec 99.7256%, F1 99.7317%

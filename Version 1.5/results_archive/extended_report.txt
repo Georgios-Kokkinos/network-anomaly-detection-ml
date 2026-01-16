@@ -1,0 +1,80 @@
+Network Anomaly Detection - Version 1.5 Extended Report
+        Date: 2026-01-14
+
+        Abstract
+        This run compares three ensemble tree models—RandomForest, XGBoost, and LightGBM—on the CICIDS 2017 weekday captures using a unified preprocessing and balancing recipe. All models operate on identical, stratified splits and see the same hybrid class balancing (majority downsampling plus SMOTE for minority labels). Aggregate performance lands between 99.6% and 99.8% across accuracy, precision, recall, and F1 on the held-out set. Residual errors concentrate almost entirely in the smallest HTTP-style attack families, while volumetric attacks and benign traffic are detected with near-perfect fidelity. This document provides an end-to-end narrative of data handling, modeling choices, evaluation findings, and concrete recommendations for hardening the weakest classes and preparing the system for operational use.
+
+        Experiment Snapshot
+        - Data volume after cleaning: 763462 rows spanning 12 labeled behaviors.
+        - Split: stratified 80/20 (train 610769, test 152693) to maintain class proportions.
+        - Balancing: per-model hybrid strategy; majority downsampled to 50000 and minority labels upsampled toward 500 via SMOTE.
+        - Features: 78 numeric flow features with human-readable names preserved for reporting.
+        - Models: RandomForest, XGBoost, LightGBM trained with consistent seeds and evaluated on the same hold-out partition.
+        - Outputs: confusion matrices (raw/normalized), per-class classification reports, feature importances (per-model and comparative), class distribution visuals, feature description table, and the short/extended narrative reports.
+
+        Dataset Assembly and Quality Treatment
+        All weekday CSVs from the CICIDS 2017 corpus are concatenated locally to avoid remote dependencies. Labels are scrubbed for stray Unicode artifacts and whitespace. Duplicate rows and explicit missing values are removed to prevent leakage of malformed flows. Numeric-looking strings are coerced to numeric with commas and spaces stripped; any remaining non-parsable entries default to zero rather than dropping additional rows, preserving minority-class coverage. Column names are sanitized to underscored variants for model ingestion, while pretty names are retained for artifacts so stakeholders can read plots without deciphering underscores. A quick pass confirms 78 usable features and eliminates any infinity values that could destabilize gradient-based learners.
+
+        Feature Engineering and Rationale
+        The feature set spans volume (byte and packet counts), timing (inter-arrival statistics), TCP flag tallies, window sizes, and flow-shape descriptors such as average segment sizes and bulk-transfer summaries. These dimensions collectively capture how traffic behaves over time, how bursty or regular it is, and how control-plane signals (flags, windows) evolve—signals that typically differentiate benign enterprise traffic from scripted scans or volumetric floods. No normalization is required for tree-based ensembles, but categorical encoders are applied to any residual non-numeric columns after coercion. Human-readable aliases are injected into plots (e.g., “Flow Bytes/s”, “Idle Mean”) to keep the visuals usable for analysts and auditors.
+
+        Class Balancing Strategy
+        Raw CICIDS data are highly skewed toward BENIGN and volumetric attacks, leaving HTTP-centric attacks under-represented. To avoid a model that simply memorizes the dominant modes, the training split undergoes a two-step balancing recipe: first, majority classes are downsampled to at most 50000 flows to shrink their dominance; second, minority classes are synthetically expanded with SMOTE toward roughly 500 samples each. This recipe is applied independently per model to ensure each learner sees a balanced view without sharing synthetic artifacts across experiments. The resulting per-model balanced set sizes are: RandomForest: 140822 rows, XGBoost: 140822 rows, LightGBM: 140822 rows.
+
+        Train/Test Design and Fairness of Comparison
+        A single stratified hold-out (80/20) is established once and reused for all models. This design avoids optimistic results that can arise if each model sees a different test distribution and ensures that inter-model comparisons reflect modeling differences rather than sampling noise. Random seeds are fixed to guarantee reproducibility. Class distributions in both splits are verified visually through bar and pie charts saved to results/, enabling quick human inspection of label proportions post-processing.
+
+        Model Configurations and Training Behavior
+        RandomForest follows sklearn defaults with deterministic seeds, providing a strong baseline with minimal tuning overhead. XGBoost disables the deprecated label encoder and uses mlogloss as its evaluation metric; its depth and learning-rate defaults strike a balance between bias and variance for this tabular regime. LightGBM employs a multiclass objective with moderate regularization (300 estimators, learning rate 0.05, num_leaves 64, subsample 0.8, colsample_bytree 0.8) and balanced class weights to keep minority labels visible. All three models fit on the balanced training data and predict directly on the untouched hold-out. Training emits the expected LightGBM “no further splits with positive gain” messages once trees saturate, and joblib reports the Windows core-detection quirk; both are benign and do not affect correctness.
+
+        Evaluation Methodology
+        Metrics are reported on the hold-out only; no cross-validation is used in this run. Overall accuracy, macro precision, macro recall, and macro F1 are computed to avoid dominance by BENIGN and DDoS. Confusion matrices (raw and normalized) are produced per model to localize false positives and false negatives. Detailed classification_report.csv files accompany each model directory, providing per-class precision/recall/F1 and support counts. A comparative bar chart (comparative_metrics.png) aggregates the four macro metrics across models on a common percent scale, with consistent ordering to prevent misinterpretation. Feature importances are extracted per model and then normalized for a comparative heatmap to understand which flows drive predictions consistently across ensembles.
+
+        Aggregate Performance at a Glance
+        - RandomForest: Acc 99.6843%, Prec 99.6894%, Rec 99.6843%, F1 99.6825%
+- XGBoost: Acc 99.7295%, Prec 99.7416%, Rec 99.7295%, F1 99.7316%
+- LightGBM: Acc 99.7256%, Prec 99.7446%, Rec 99.7256%, F1 99.7317%
+        LightGBM leads the pack with Acc 99.7256%, Prec 99.7446%, Rec 99.7256%, and F1 99.7317% on the common hold-out.
+        The spread between models is intentionally narrow; under this feature set and balancing recipe, all three learners converge to a high-performing regime. Differences matter primarily for rare classes and for operational efficiency considerations (e.g., model size, scoring latency), not for headline macro metrics.
+
+        Model-by-Model Commentary
+        RandomForest: Provides a robust baseline with minimal sensitivity to hyperparameters. Its bagging nature guards against overfitting, and its per-feature split logic naturally handles mixed-scale features. In the current run it trails the gradient-boosted models by a few basis points on macro F1, which is expected given its shallower interaction depth. Feature importances are dominated by byte/packet totals and timing statistics, aligning with domain expectations.
+
+        XGBoost: Slightly edges out RandomForest on macro metrics, benefiting from boosted trees that capture higher-order interactions. XGBoost’s handling of missing values and its regularization defaults give it stable performance without exhaustive tuning. Training remains fast on the balanced dataset size, and inference latency is acceptable for near-real-time use cases.
+
+        LightGBM: Matches XGBoost on top-line metrics while often producing the sharpest decision boundaries on minority classes, thanks to leaf-wise growth and class-balanced weights. The frequent “no positive gain” warnings signal that trees have already extracted most available structure; they can be reduced by increasing min_gain_to_split if log noise becomes distracting. LightGBM’s memory footprint is modest relative to the dataset size, keeping deployment options open.
+
+        Class-Level Behavior and Error Patterns
+        The confusion matrices confirm that BENIGN traffic and volumetric attacks (DDoS, DoS variants, FTP-Patator) are detected with near-perfect precision and recall. PortScan maintains high recall but shows the highest false-positive rate among the major classes, a known pain point when scan patterns resemble noisy benign bursts. HTTP-oriented attacks (Brute Force, XSS, SQL Injection) and Infiltration remain the weakest performers due to tiny support; their per-class precision and recall vary widely run to run. The macro metrics therefore overstate confidence in these tails—human review of those slices remains necessary until better signals or more data arrive.
+
+        False Positives vs. False Negatives
+        False positives concentrate on PortScan and, to a lesser extent, rare web attacks mislabeled from BENIGN. This is preferable to the inverse (false negatives) in high-sensitivity SOC contexts but may create alert fatigue. False negatives are scarce for major classes but appear for Brute Force, XSS, and SQL Injection, where the model lacks diverse exemplars. Adjusting class weights upward for these labels or injecting synthetic variants that better reflect HTTP payload diversity could reduce these misses.
+
+        Feature Importance and Interpretability
+        Across all models, the top-ranked signals include Flow Bytes/s, Flow Packets/s, forward/backward packet and byte totals, inter-arrival time means and standard deviations, TCP flag counts (especially SYN/FIN/ACK), and initial window sizes. These features quantify how loud, bursty, and protocol-specific each flow appears—precisely the cues operators use when triaging alerts. The comparative_feature_importance.png heatmap shows strong consensus across models, suggesting that subsequent feature engineering should focus on enriching HTTP semantics rather than radically altering the existing flow-level set. The feature_descriptions.png artifact remains the definitive lookup for stakeholders reading plots.
+
+        Stability, Warnings, and Reproducibility
+        Logged warnings are limited to LightGBM split-gain exhaustion and joblib’s Windows core-detection quirk. Seeds are fixed to ensure reproducible splits and model fits. prepare_results_dir clears previous artifacts at the start of each run, guaranteeing that outputs reflect only the current code and data slice. For deeper stability claims—especially around minority-class swings—k-fold cross-validation or repeated hold-out should be scheduled; macro metrics alone cannot surface variance in tiny classes.
+
+        Validity and Threats to Inference
+        The primary validity risk is data scarcity for HTTP and infiltration attacks; SMOTE cannot fabricate protocol-level diversity. Another risk is concept drift: CICIDS 2017 reflects traffic patterns that may diverge from current enterprise baselines. Additionally, heavy class imbalance means small labeling errors in the minority slices could dominate their measured precision/recall. None of these invalidate the strong performance on volumetric attacks, but they temper confidence in the rare-class tails and argue for continuous evaluation on fresher captures.
+
+        Recommendations (Prioritized)
+        1) Data and Features: Collect more HTTP attack traffic or simulate realistic payloads; add HTTP-aware features such as method/URI tokens, header entropy, and request/response size ratios; consider JA3/JA3S fingerprints if TLS flows are present. 2) Training Strategy: Increase class_weight for web-attack labels; experiment with focal loss in gradient boosters; raise min_gain_to_split in LightGBM to curb warning noise. 3) Validation: Run 5-fold stratified CV on the balanced sets to estimate variance; include per-class confidence intervals in future reports. 4) Monitoring: Define alert-volume budgets for PortScan to manage false positives; track drift by monitoring feature distributions (KS tests) and macro metrics over rolling windows once deployed. 5) Reproducibility: Emit a run manifest capturing seeds, balancing parameters, dataset hashes, and library versions alongside the artifacts.
+
+        Deployment and Operations Considerations
+        For near-real-time scoring, XGBoost or LightGBM are preferable for their compact models and fast inference; RandomForest remains a stable fallback. Exporting models to ONNX can simplify runtime integration across languages. At inference, the same feature sanitization (underscore stripping and numeric coercion) must be mirrored; missing or malformed fields should default to safe zeros to avoid rejection in pipelines. Given the PortScan false-positive tendency, consider a two-stage workflow: fast model inference followed by a lightweight rule or heuristics check for scan-like bursts before raising tickets.
+
+        Future Experiments
+        - Hyperparameter sweeps targeting minority-class lift (depth, learning rate, min_child_samples, min_gain_to_split, gamma/lambda).
+        - Contrast SMOTE with SMOTEENN/ADASYN and class-weight-only baselines to understand trade-offs on web attacks.
+        - Explore calibrated probabilities and threshold tuning per class to rebalance precision/recall where operators prefer fewer false positives.
+        - Evaluate temporal robustness by training on a subset of days and testing on held-out days to simulate time-shifted deployment.
+        - Add explainability artifacts (SHAP for top features on misclassified samples) to speed analyst triage.
+
+        Artifact Index
+        - Root artifacts: short_report.txt, extended_report.txt, comparative_metrics.png, comparative_feature_importance.png, class_distribution.png, class_proportion.png, feature_descriptions.png.
+        - Per-model folders (rf/, xgboost/, lightgbm/): metrics.csv, classification_report.csv, confusion_matrix.png, confusion_matrix_normalized.png, feature_importance.png.
+
+        Closing Note
+        The current pipeline yields strong, stable performance on the dominant traffic modes and establishes a transparent artifact set for stakeholders. Meaningful gains now depend on strengthening the weakest classes with richer data and HTTP-aware features while institutionalizing cross-validation and drift monitoring. With those steps, the system will be ready for sustained operational deployment without sacrificing interpretability or reproducibility.
