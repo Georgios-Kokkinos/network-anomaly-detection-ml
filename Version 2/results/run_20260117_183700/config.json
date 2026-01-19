@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "label_col": "Label",
+  "sample_fraction": 0.2,
+  "max_rows_per_file": 200000,
+  "test_size": 0.2,
+  "val_size": 0.1,
+  "batch_size": 1024,
+  "epochs": 20,
+  "learning_rate": 0.001,
+  "hidden_units": [
+    256,
+    128,
+    64
+  ],
+  "dropout": 0.3,
+  "use_class_weight": true,
+  "results_dir_name": "results"
+}

@@ -1,0 +1,14 @@
+class,count
+BENIGN,236058
+Bot,390
+DDoS,25545
+DoS Hulk,23836
+DoS Slowhttptest,1109
+DoS slowloris,1180
+FTP-Patator,1623
+Infiltration,2
+PortScan,21668
+SSH-Patator,424
+Web Attack � Brute Force,310
+Web Attack � Sql Injection,7
+Web Attack � XSS,128
