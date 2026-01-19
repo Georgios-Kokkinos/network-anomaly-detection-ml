@@ -1,12 +1,13 @@
 # Network Anomaly Detection with ML
 
-A staged project for an undergraduate diploma thesis (University of Patras, Supervisor: Prof. Dimitrios Serpanos) that implements and evaluates machine‑learning pipelines for network traffic anomaly detection using the CICIDS 2017 dataset. This repository contains two checkpointed versions of the pipeline: Version 1 and Version 1.5.
+A staged project for an undergraduate diploma thesis (University of Patras, Supervisor: Prof. Dimitrios Serpanos) that implements and evaluates machine‑learning pipelines for network traffic anomaly detection using the CICIDS 2017 dataset. This repository contains three checkpointed versions of the pipeline: Version 1, Version 1.5, and Version 2.
 
 ---
 
 ## Project structure (root)
 - Version 1/ — original checkpoint (baseline RandomForest pipeline, documentation, results snapshot)
 - Version 1.5/ — extended checkpoint (multi‑model benchmark: RandomForest, XGBoost, LightGBM; improved reporting and plotting)
+- Version 2/ — deep-learning checkpoint (MLP baseline, ROC/PR curves, enhanced sanitization, expanded documentation)
 - README.md (this file)
 
 Each version folder is self-contained: source code under `src/`, a `data/` placeholder (CSV dataset not included), and `results/` containing run artifacts for that version.
@@ -26,12 +27,13 @@ Each version folder is self-contained: source code under `src/`, a `data/` place
 Version differences
 - Version 1: single-model baseline (RandomForest) with modular code and initial reports.
 - Version 1.5: multi-model benchmark (RF, XGBoost, LightGBM), comparative visuals, improved logging, reproducible run artifacts, and a short narrative report.
+- Version 2: deep-learning baseline (MLP) with enhanced naming sanitization, confusion-matrix styling with per-cell counts, and ROC / Precision–Recall curves saved to results.
 
 ---
 
 ## Quick start (per-version)
 
-1. Open a terminal in the version folder you want to run (e.g., `Version 1.5`).
+1. Open a terminal in the version folder you want to run (e.g., `Version 1.5` or `Version 2`).
 2. Install dependencies:
    ```
    pip install -r requirements.txt
