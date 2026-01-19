@@ -94,3 +94,13 @@ Planned next work (not implemented in this checkpoint):
 Refer to the LICENSE file inside each version folder for licensing. When using or citing this work in academic contexts, acknowledge the supervisor and institution as appropriate.
 
 ---
+
+## Version 2 (summary)
+
+- **Added:** a deep-learning baseline (feed-forward MLP) implemented as a self-contained checkpoint alongside the existing Version 1/1.5 folders. Version 2 includes improved sanitization for feature and class names, confusion-matrix styling (per-cell counts using the project colormap), ROC and Precision–Recall curve plotting, and expanded docstrings across the codebase.
+- **Artifacts:** each run of Version 2 writes a reproducible run folder under `Version 2/results/` containing `metrics.csv`, `classification_report.csv`, `confusion_matrix.png`, `roc_curves.png`, `precision_recall_curves.png`, `training_curves.png`, `history.csv`, `model.keras`, `scaler.joblib`, `label_encoder.joblib`, `feature_names.txt`, and a short run manifest (seed/config).
+- **Reproducibility:** run Version 2 from its folder using `python -m src.main`; runs store config and random seed to ease reproducibility.
+- **Pre-push guidance:** do not commit raw dataset CSVs. Keep a `.gitkeep` in `Version 2/data/` and ensure `data/*` is present in `.gitignore` before pushing to a remote to avoid uploading large or sensitive files.
+- **Suggested next experiments:** to improve rare-class macro-F1 we will consider class-balanced sampling, focal loss, targeted oversampling, or increasing model capacity / training epochs.
+
+---
