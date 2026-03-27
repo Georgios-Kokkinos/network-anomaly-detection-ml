@@ -73,6 +73,7 @@ Each run creates a timestamped folder under `results/` with:
 - `classification_report.csv` — per‑class precision/recall/F1/support (CSV).
 - `classification_report.txt` — readable text version of the classification report.
 - `confusion_matrix.png` — raw confusion matrix heatmap with counts.
+- `confusion_matrix_normalized.png` — normalized confusion matrix heatmap (0-1).
 - `roc_curves.png` — one‑vs‑rest ROC curves (plus micro‑average).
 - `precision_recall_curves.png` — one‑vs‑rest PR curves (plus micro‑average).
 - `training_curves.png` — training/validation loss and accuracy over epochs.

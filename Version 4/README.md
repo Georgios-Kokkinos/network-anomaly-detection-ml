@@ -29,13 +29,14 @@ This checkpoint mirrors Version 2 on the **UNSW-NB15 / CIC-UNSW-NB15** dataset. 
 
 4. **Deep Learning Model (MLP Baseline)**
    - Configurable hidden layers and dropout (same architecture philosophy as Version 2).
-   - Adam optimizer with class weights.
-   - Early stopping and LR reduction callbacks for stable training.
+   - Adam optimizer with tuned architecture defaults for this checkpoint.
+   - Train-set rebalancing (per-class downsampling/upsampling) before fitting to improve minority-class learning.
+   - Early stopping and LR reduction callbacks are active for stable training.
 
 5. **Evaluation & Visualization**
    - Metrics (accuracy, macro/weighted precision/recall/F1) are saved to CSV.
    - Classification report is saved in CSV and TXT.
-   - Confusion matrix heatmap is generated with per-cell counts.
+   - Confusion matrix heatmaps are generated in raw and normalized forms.
    - ROC and Precision-Recall curves are generated (one-vs-rest plus micro-average).
    - Training curves and epoch history are exported.
 
@@ -90,6 +91,7 @@ Each run creates a timestamped folder under `results/` with:
 - `classification_report.csv`
 - `classification_report.txt`
 - `confusion_matrix.png`
+- `confusion_matrix_normalized.png` — normalized confusion matrix heatmap (0-1).
 - `roc_curves.png`
 - `precision_recall_curves.png`
 - `training_curves.png`
@@ -98,19 +100,25 @@ Each run creates a timestamped folder under `results/` with:
 - `scaler.joblib`
 - `label_encoder.joblib`
 - `class_distribution.csv`
+- `train_class_balance.csv`
 - `feature_names.txt`
 
-Latest validated run snapshot (folder `run_20260326_150110`):
-- Accuracy: 0.847625
-- Weighted F1: 0.891808
-- Macro F1: 0.205451
+Latest validated run snapshot (folder `run_20260327_162554`):
+- Accuracy: 0.965188
+- Weighted F1: 0.967010
+- Macro F1: 0.431079
+
+Compared with the earlier baseline snapshot (`run_20260326_150110`), macro F1 improved from 0.205451 to 0.431079 after the rebalancing and tuning updates.
 
 ---
 
 ## Notes
 
 - This version is intentionally parallel to Version 2 (same DL workflow, new dataset).
-- Update `sample_fraction` and `max_rows_per_file` in `src/config.py` for full-data runs.
+- Current validated defaults in `src/config.py`:
+   - `sample_fraction=0.8`, `max_rows_per_file=200000`
+   - `batch_size=512`, `epochs=14`, `hidden_units=(512, 256, 128)`, `dropout=0.2`
+   - train rebalancing enabled with `min_train_samples_per_class=1500`, `max_train_samples_per_class=40000`
 - TensorFlow may print oneDNN/CPU/FutureWarning messages that are informational and do not indicate failure.
 
 ---
