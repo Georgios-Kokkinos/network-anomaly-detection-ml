@@ -1,0 +1,13 @@
+Network Anomaly Detection - Short Report
+        Date: 2026-03-26
+
+        Overview
+        Three tree-based classifiers (RandomForest, XGBoost, LightGBM) were trained on a unified UNSW-NB15 pipeline with hybrid class balancing (downsample majority + SMOTE). A single stratified 80/20 hold-out enables fair comparison across models.
+
+        Data Slice
+        Total rows after cleaning: 75432. Train: 60345. Test: 15087. Features retained: 76. Classes observed: 10.
+
+        Aggregate Metrics (percent scale)
+        - RandomForest: Acc 93.4314%, Prec 93.3343%, Rec 93.4314%, F1 93.1880%
+- XGBoost: Acc 93.9087%, Prec 93.9709%, Rec 93.9087%, F1 93.6255%
+- LightGBM: Acc 93.3585%, Prec 93.5140%, Rec 93.3585%, F1 93.3640%
