@@ -1,0 +1,11 @@
+class,count
+Benign,147771
+Analysis,44
+Backdoor,52
+DoS,587
+Exploits,3878
+Fuzzers,4771
+Generic,577
+Reconnaissance,2035
+Shellcode,253
+Worms,32
