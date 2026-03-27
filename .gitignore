@@ -1,0 +1,5 @@
+﻿# Ignore raw datasets and large files
+/Version 3/data/*
+/Version 4/data/*
+data/*.csv
+*.pcap*

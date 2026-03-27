@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local IDE
+.vscode/
+
+# Dataset files (keep folder only)
+data/*.csv
+!data/.gitkeep
+!data/DATASET_FILES.md
+
+# Generated outputs (keep folder only)
+results/**
+!results/.gitkeep
+
+# Optional archive outputs
+results_archive/**
+!results_archive/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
