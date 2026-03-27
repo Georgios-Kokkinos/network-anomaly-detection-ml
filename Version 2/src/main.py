@@ -138,7 +138,14 @@ def main() -> None:
         y_test, y_pred, labels, run_dir / "classification_report.csv", run_dir / "classification_report.txt"
     )
     # Core evaluation plots.
-    plot_confusion_matrix(y_test, y_pred, labels, run_dir / "confusion_matrix.png")
+    plot_confusion_matrix(y_test, y_pred, labels, run_dir / "confusion_matrix.png", normalize=False)
+    plot_confusion_matrix(
+        y_test,
+        y_pred,
+        labels,
+        run_dir / "confusion_matrix_normalized.png",
+        normalize=True,
+    )
     plot_roc_curves(y_test, y_proba, labels, run_dir / "roc_curves.png")
     plot_precision_recall_curves(y_test, y_proba, labels, run_dir / "precision_recall_curves.png")
     plot_training_curves(history.history, run_dir / "training_curves.png")

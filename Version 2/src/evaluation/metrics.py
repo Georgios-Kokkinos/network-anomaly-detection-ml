@@ -101,7 +101,11 @@ def save_classification_report(
 
 
 def plot_confusion_matrix(
-    y_true: np.ndarray, y_pred: np.ndarray, labels: list[str], path: Path
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    labels: list[str],
+    path: Path,
+    normalize: bool = False,
 ) -> None:
     """Plot and save the confusion matrix with Version 1/1.5 styling.
 
@@ -110,22 +114,24 @@ def plot_confusion_matrix(
     y_pred (np.ndarray): Predicted labels.
     labels (list[str]): Class label names.
     path (Path): Output image path.
+    normalize (bool): Whether to row-normalize the confusion matrix.
 
     Returns:
     None
     """
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred, normalize="true" if normalize else None)
+    fmt = ".2f" if normalize else "d"
     plt.figure(figsize=(12, 9))
     sns.heatmap(
         cm,
         annot=True,
-        fmt="d",
+        fmt=fmt,
         cmap="plasma",
         xticklabels=labels,
         yticklabels=labels,
         annot_kws={"size": 7},
     )
-    plt.title("Confusion Matrix")
+    plt.title("Normalized Confusion Matrix" if normalize else "Confusion Matrix")
     plt.xlabel("Predicted")
     plt.ylabel("True")
     plt.tight_layout()

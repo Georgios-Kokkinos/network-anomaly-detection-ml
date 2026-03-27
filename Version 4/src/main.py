@@ -44,6 +44,51 @@ from src.utils.helpers import (
 )
 
 
+def rebalance_training_data(
+    X: np.ndarray,
+    y: np.ndarray,
+    min_samples_per_class: int,
+    max_samples_per_class: int,
+    seed: int,
+) -> tuple[np.ndarray, np.ndarray, dict[int, tuple[int, int]]]:
+    """Rebalance train data with per-class down/up sampling.
+
+    Parameters:
+    X (np.ndarray): Training features.
+    y (np.ndarray): Training labels.
+    min_samples_per_class (int): Minimum target samples per class.
+    max_samples_per_class (int): Maximum target samples per class.
+    seed (int): Random seed.
+
+    Returns:
+    tuple: (X_balanced, y_balanced, class_counts_before_after)
+    """
+    rng = np.random.default_rng(seed)
+    classes, counts = np.unique(y, return_counts=True)
+
+    X_parts: list[np.ndarray] = []
+    y_parts: list[np.ndarray] = []
+    class_summary: dict[int, tuple[int, int]] = {}
+
+    for cls, count in zip(classes, counts):
+        class_idx = np.where(y == cls)[0]
+
+        target_count = int(count)
+        target_count = max(target_count, int(min_samples_per_class))
+        target_count = min(target_count, int(max_samples_per_class))
+
+        sampled_idx = rng.choice(class_idx, size=target_count, replace=target_count > count)
+        X_parts.append(X[sampled_idx])
+        y_parts.append(np.full(target_count, cls, dtype=y.dtype))
+        class_summary[int(cls)] = (int(count), int(target_count))
+
+    X_balanced = np.concatenate(X_parts, axis=0)
+    y_balanced = np.concatenate(y_parts, axis=0)
+
+    shuffle_idx = rng.permutation(len(y_balanced))
+    return X_balanced[shuffle_idx], y_balanced[shuffle_idx], class_summary
+
+
 def main() -> None:
     """Run the full training + evaluation pipeline and save all artifacts.
 
@@ -100,6 +145,31 @@ def main() -> None:
     X_val = scaler.transform(X_val)
     X_test = scaler.transform(X_test)
 
+    # Optional train-set rebalancing to improve minority-class learning.
+    if config.rebalance_train_data:
+        X_train, y_train, class_summary = rebalance_training_data(
+            X_train,
+            y_train,
+            min_samples_per_class=config.min_train_samples_per_class,
+            max_samples_per_class=config.max_train_samples_per_class,
+            seed=config.seed,
+        )
+
+        summary_rows = []
+        for class_id, (before_count, after_count) in class_summary.items():
+            summary_rows.append(
+                {
+                    "class": map_unsw_class_names([str(label_encoder.classes_[class_id])])[0],
+                    "train_count_before": before_count,
+                    "train_count_after": after_count,
+                }
+            )
+        save_dataframe(pd.DataFrame(summary_rows), run_dir / "train_class_balance.csv")
+        print(
+            "Rebalanced train set:",
+            f"{len(y_train):,} samples across {len(class_summary)} classes",
+        )
+
     # Optional class weights to mitigate imbalance.
     class_weights = None
     if config.use_class_weight:
@@ -130,6 +200,7 @@ def main() -> None:
         epochs=config.epochs,
         batch_size=config.batch_size,
         class_weight=class_weights,
+        callbacks=callbacks,
         verbose=1,
     )
 
@@ -146,7 +217,14 @@ def main() -> None:
         y_test, y_pred, labels, run_dir / "classification_report.csv", run_dir / "classification_report.txt"
     )
     # Core evaluation plots.
-    plot_confusion_matrix(y_test, y_pred, labels, run_dir / "confusion_matrix.png")
+    plot_confusion_matrix(y_test, y_pred, labels, run_dir / "confusion_matrix.png", normalize=False)
+    plot_confusion_matrix(
+        y_test,
+        y_pred,
+        labels,
+        run_dir / "confusion_matrix_normalized.png",
+        normalize=True,
+    )
     plot_roc_curves(y_test, y_proba, labels, run_dir / "roc_curves.png")
     plot_precision_recall_curves(y_test, y_proba, labels, run_dir / "precision_recall_curves.png")
     plot_training_curves(history.history, run_dir / "training_curves.png")
