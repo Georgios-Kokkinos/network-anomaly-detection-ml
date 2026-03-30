@@ -17,9 +17,6 @@ data/*.csv
 !data/.gitkeep
 !data/DATASET_FILES.md
 
-# Generated outputs (keep folder only)
-results/**
-!results/.gitkeep
 
 # OS files
 .DS_Store

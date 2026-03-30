@@ -1,0 +1,11 @@
+class,train_count_before,train_count_after
+Benign,85646,85646
+Analysis,38,1500
+Backdoor,46,1500
+DoS,505,1500
+Exploits,3404,3404
+Fuzzers,3890,3890
+Generic,497,1500
+Reconnaissance,1328,1500
+Shellcode,227,1500
+Worms,28,1500

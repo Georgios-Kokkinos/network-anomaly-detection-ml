@@ -1,0 +1,11 @@
+class,train_before_rebalance,val,test
+Benign,85646,12236,24471
+Analysis,38,5,11
+Backdoor,46,7,13
+DoS,505,72,144
+Exploits,3404,486,973
+Fuzzers,3890,556,1112
+Generic,497,71,142
+Reconnaissance,1328,190,379
+Shellcode,227,32,65
+Worms,28,4,8

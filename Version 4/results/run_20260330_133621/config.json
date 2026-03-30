@@ -1,0 +1,25 @@
+{
+  "seed": 42,
+  "label_col": "Label",
+  "sample_fraction": 1.0,
+  "max_rows_per_file": 200000,
+  "drop_duplicate_rows": true,
+  "test_size": 0.2,
+  "val_size": 0.1,
+  "batch_size": 1024,
+  "epochs": 35,
+  "learning_rate": 0.0001,
+  "hidden_units": [
+    512,
+    256,
+    128
+  ],
+  "dropout": 0.1,
+  "use_class_weight": true,
+  "class_weight_power": 0.8,
+  "max_class_weight": 80.0,
+  "rebalance_train_data": true,
+  "min_train_samples_per_class": 1500,
+  "max_train_samples_per_class": 100000,
+  "results_dir_name": "results"
+}
