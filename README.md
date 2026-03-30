@@ -26,7 +26,7 @@ Each version folder is self-contained with source code under `src/`, a dataset p
 Shared pipeline stages (version-specific implementations):
 - Load and clean CSV data.
 - Perform feature engineering and sanitization.
-- Handle class imbalance (tree-based versions) or class-weighted training (deep-learning versions).
+- Handle class imbalance (tree-based versions) or class-weighted/rebalanced training (deep-learning versions).
 - Train and evaluate models on hold-out splits.
 - Save metrics, reports, confusion matrices, and comparative plots to `results/`.
 
@@ -142,7 +142,7 @@ Manual visual checks also confirmed that generated plots are semantically consis
 
 Current baseline snapshots from latest validated runs:
 - Version 3 (UNSW tree-based): around 93% accuracy across RF/XGBoost/LightGBM.
-- Version 4 (UNSW deep-learning): accuracy around 0.85 with lower macro-F1 due to severe class imbalance.
+- Version 4 (UNSW deep-learning): accuracy around 0.94 with macro-F1 around 0.38 under severe class imbalance.
 
 ---
 

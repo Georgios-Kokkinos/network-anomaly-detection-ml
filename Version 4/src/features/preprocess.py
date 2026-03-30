@@ -44,6 +44,19 @@ def preprocess_dataframe(
     if label_col not in df.columns:
         raise ValueError(f"Label column '{label_col}' not found in data")
 
+    # Guard against accidental target leakage if multiple label-like columns exist.
+    leakage_candidates = {"label", "attack_cat", "attack", "class", "target", "y"}
+    keep_label_norm = sanitize_text(label_col).lower()
+    drop_cols: list[str] = []
+    for col in df.columns:
+        if col == label_col:
+            continue
+        col_norm = sanitize_text(col).lower()
+        if col_norm in leakage_candidates and col_norm != keep_label_norm:
+            drop_cols.append(col)
+    if drop_cols:
+        df = df.drop(columns=drop_cols)
+
     # Extract and sanitize label values.
     y_raw = df[label_col].astype(str).map(sanitize_text)
     X_df = df.drop(columns=[label_col])

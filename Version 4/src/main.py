@@ -119,6 +119,14 @@ def main() -> None:
         sample_fraction=config.sample_fraction,
         random_state=config.seed,
     )
+
+    if config.drop_duplicate_rows:
+        before_rows = len(df)
+        df = df.drop_duplicates().reset_index(drop=True)
+        dropped = before_rows - len(df)
+        if dropped > 0:
+            print(f"Dropped {dropped:,} duplicate rows before split")
+
     print(f"Loaded {df.shape[0]:,} rows and {df.shape[1]:,} columns")
 
     print("[2/7] Preprocessing...")
@@ -137,6 +145,19 @@ def main() -> None:
     X_train, X_val, y_train, y_val = train_test_split(
         X_train, y_train, test_size=val_ratio, stratify=y_train, random_state=config.seed
     )
+
+    labels = map_unsw_class_names(list(label_encoder.classes_))
+    split_rows = []
+    for class_id, class_name in enumerate(labels):
+        split_rows.append(
+            {
+                "class": class_name,
+                "train_before_rebalance": int(np.sum(y_train == class_id)),
+                "val": int(np.sum(y_val == class_id)),
+                "test": int(np.sum(y_test == class_id)),
+            }
+        )
+    save_dataframe(pd.DataFrame(split_rows), run_dir / "split_class_distribution.csv")
 
     print("[4/7] Scaling features...")
     # Standardize features for stable MLP training.
@@ -159,7 +180,7 @@ def main() -> None:
         for class_id, (before_count, after_count) in class_summary.items():
             summary_rows.append(
                 {
-                    "class": map_unsw_class_names([str(label_encoder.classes_[class_id])])[0],
+                    "class": labels[class_id],
                     "train_count_before": before_count,
                     "train_count_after": after_count,
                 }
@@ -175,7 +196,9 @@ def main() -> None:
     if config.use_class_weight:
         classes = np.unique(y_train)
         weights = compute_class_weight(class_weight="balanced", classes=classes, y=y_train)
-        class_weights = {cls: weight for cls, weight in zip(classes, weights)}
+        transformed = np.power(weights, config.class_weight_power)
+        transformed = np.clip(transformed, 1e-6, config.max_class_weight)
+        class_weights = {int(cls): float(weight) for cls, weight in zip(classes, transformed)}
 
     print("[5/7] Building model...")
     # Build the baseline MLP.
@@ -212,7 +235,6 @@ def main() -> None:
     save_metrics(metrics, run_dir / "metrics.csv")
 
     # Human-readable labels for reports and plots.
-    labels = map_unsw_class_names(list(label_encoder.classes_))
     save_classification_report(
         y_test, y_pred, labels, run_dir / "classification_report.csv", run_dir / "classification_report.txt"
     )
